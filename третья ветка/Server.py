@@ -19,17 +19,16 @@ class Server:
         self.clients = []
 
     def presence_response(self, presence_message):  # передаем presence_message-сообщение клиента {ACTION:PRESENCE, TIME:time.time()}, сервер посылает сообщение-словарь клиенту
-        # Делаем проверки
-        if ACTION in presence_message and \
-                presence_message[ACTION] == PRESENCE and \
-                TIME in presence_message and \
-                isinstance(presence_message[TIME], float):
-
-            return {RESPONSE: 200}# Если всё хорошо шлем ОК
+        # # Делаем проверки
+        if 'action' in presence_message and \
+                presence_message['action'] == 'presence' and \
+                'time' in presence_message and \
+                isinstance(presence_message['time'], float):
+                return {'response': 200}# Если всё хорошо шлем ОК {RESPONSE: 200}
         else:
+                return {'response': 400, 'error': 'Не верный запрос'} # Шлем код ошибки
 
-            return {RESPONSE: 400, ERROR: 'Не верный запрос'} # Шлем код ошибки
-
+        return {'response': 200}  # Если всё хорошо шлем ОК {RESPONSE: 200}
 
     def read_requests(self, r_clients, all_clients):  # r_clients: клиенты которые могут отправлять сообщения
         # Список входящих сообщений то есть список словарей
@@ -75,7 +74,7 @@ class Server:
 
 
 
-    def server(self):
+    def server_main(self):
 
         while True:
              try:
@@ -83,15 +82,16 @@ class Server:
 
                  presence = get_message(conn)  # получаем сообщение presence(словарь) от клиента с сокетом conn
 
-                 response = presence_response(presence)  # почему ругается? метод же в этом же классе ,   формируем ответ этому клиенту, response  - словарь {ACTION:PRESENCE, TIME:time.time()}
+                 response = self.presence_response(presence)  # почему ругается? метод же в этом же классе ,   формируем ответ этому клиенту, response  - словарь {ACTION:PRESENCE, TIME:time.time()}
 
                  send_message(conn, response)  # отправляем ответ - response клиенту conn
              except OSError as e:
-                 # pass  # timeout вышел
-                 print('ошибка таймаута', e)
+                  pass  # timeout вышел
+                  #print('ошибка таймаута', e)
              else:
                  print("Получен запрос на соединение от %s" % str(addr))  # выводим адре  клиента,котрый подклчился
                  self.clients.append(conn)
+
              finally:
                  # Проверить наличие событий ввода-вывода
                  wait = 0
@@ -101,11 +101,12 @@ class Server:
                      r, w, e = select.select(self.clients, self.clients, [], wait)  # w-клиенты, котроые читают, r-клиент котрые отправляют
                  except:
                      pass  # Ничего не делать, если какой-то клиент отключился
+
                  # клиентв из r пишут сообщения
-                 requests = read_requests(r, self.clients)  # почему ругается? метод в этом же классе .   Получаем  список-requests входных сообщений(список словарей) от клиента
-                 write_responses(requests, w, self.clients)  # почему ругается? метод в этом же классе . Выполним отправку  списока входящих сообщений(словарей) клиентам котрые читают
+                 requests = self.read_requests(r, self.clients)  #  Получаем  список-requests входных сообщений(список словарей) от клиента
+                 self.write_responses(requests, w, self.clients)  #   Выполним отправку  списока входящих сообщений(словарей) клиентам котрые читают
 
 
 if __name__ == '__main__':
     s = Server()
-    s.server()
+    s.server_main()

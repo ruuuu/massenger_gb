@@ -1,4 +1,4 @@
-from Response import Response # импортирум класс  Response  из файла response.py
+
 #import sys
 #import logging
 #import select
@@ -10,33 +10,26 @@ from errors import * # из файла errors.py импоритируме все
 
 
 
-class  Response:
+class  RResponse:
 
     def __init__(self):
-        self.message = '' # начальное значение
+        self.message = '' # начальное значение, в методе ему присвоим др значение
 
     def create_presence(self, account_name="Guest"):  # готовим сообщение для сервера, говорим "Я здесь"
-            """
-            Сформировать ​​presence-сообщение
-            :param account_name: Имя пользователя
-            :return: Словарь сообщения
-            tests:
-            ИЗ-ЗА времени трудно написать doctest
-            """
 
-            if not isinstance(account_name, str):# Если имя не строка
-
-                raise TypeError# Генерируем ошибку передан неверный тип
-
-            if len(account_name) > 25:# Если длина имени пользователя больше 25 символов
-
-                raise UsernameToLongError(account_name)# генерируем нашу ошибку имя пользователя слишком длинное
+            # if not isinstance(account_name, str):#
+            #
+            #     raise TypeError# Генерируем ошибку передан неверный тип
+            #
+            # if len(account_name) > 25:#
+            #
+            #     raise UsernameToLongError(account_name)# генерируем нашу ошибку имя пользователя слишком длинное
 
             self.message = {    # формируем словарь сообщения для сервера
-                ACTION: PRESENCE,
-                TIME: time.time(),
-                USER: {
-                    ACCOUNT_NAME: account_name
+                'action': 'presence', #PRESENCE,
+                'time': time.time(),
+                'user': {
+                    'account_name': account_name
                 }
             }
 
@@ -49,19 +42,19 @@ class  Response:
         :return: корректный словарь ответа
         """
 
-        if not isinstance(response, dict):  # Передали не словарь
-            raise TypeError
+        # if not isinstance(response, dict):  # Передали не словарь
+        #     raise TypeError
+        #
+        # if RESPONSE not in response:  # Нету ключа response
+        #     raise MandatoryKeyError(RESPONSE)  # Ошибка нужен обязательный ключ
 
-        if RESPONSE not in response:  # Нету ключа response
-            raise MandatoryKeyError(RESPONSE)  # Ошибка нужен обязательный ключ
 
+        code = response['response']  # получаем код ответа RESPONSE
 
-        code = response[RESPONSE]  # получаем код ответа
-
-        if len(str(code)) != 3:  # длина кода не 3 символа
-            raise ResponseCodeLenError(code)  # Ошибка неверная длина кода ошибки
-
-        if code not in RESPONSE_CODES:# неправильные коды символов
-           raise ResponseCodeError(code) # ошибка неверный код ответа
+        # if len(str(code)) != 3:  # длина кода не 3 символа
+        #     raise ResponseCodeLenError(code)  # Ошибка неверная длина кода ошибки
+        #
+        # if code not in RESPONSE_CODES:# неправильные коды символов
+        #    raise ResponseCodeError(code) # ошибка неверный код ответа
 
         return response# возвращаем ответ
